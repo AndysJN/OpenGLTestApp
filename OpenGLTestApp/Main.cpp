@@ -1,34 +1,42 @@
 #include <iostream>
 #include <string>
+#include <cmath>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 const GLint WIDTH = 800, HEIGHT = 600;
 
-GLuint VAO, VBO, Shader;
+GLuint VAO, VBO, Shader, UniformXMove;
+
+bool Direction = true;
+float TriOffset = 0.0f;
+float TriMaxOffset = 0.7f;
+float TriIncrement = 0.0005f;
 
 // Vertex Shader creation
-static const char* VShader = "									\n\
-#version 330													\n\
-																\n\
-layout (location = 0) in vec3 pos;								\n\
-																\n\
-void main()														\n\
-{																\n\
-	gl_Position = vec4( 0.4f * pos.x, 0.4f * pos.y, pos.z, 1.0f);\n\
+static const char* VShader = "										\n\
+#version 330														\n\
+																	\n\
+layout (location = 0) in vec3 pos;									\n\
+																	\n\
+uniform float XMove;												\n\
+																	\n\
+void main()															\n\
+{																	\n\
+	gl_Position = vec4( 0.4f * pos.x + XMove, 0.4f * pos.y, pos.z, 1.0f);	\n\
 }";
 
 // Fragment Shader creation
 
-static const char* FShader = "									\n\
-#version 330													\n\
-																\n\
-out vec4 colour;												\n\
-																\n\
-void main()														\n\
-{																\n\
-	colour = vec4(0.0 , 1.0 , 0.0 , 0.3);						\n\
+static const char* FShader = "										\n\
+#version 330														\n\
+																	\n\
+out vec4 colour;													\n\
+																	\n\
+void main()															\n\
+{																	\n\
+	colour = vec4(0.0 , 1.0 , 0.0 , 0.3);							\n\
 }";
 
 void CreateTriangle()
@@ -116,6 +124,8 @@ void CompileShaders()
 		printf("Error validating program: '%s'\n", eLog);
 		return;
 	}
+
+	UniformXMove = glGetUniformLocation(Shader, "XMove");
 }
 
 int main()
@@ -180,12 +190,29 @@ int main()
 		// Get + Hanlde user input events
 		glfwPollEvents();
 
+		// Cambiar direccion?
+		if (Direction)
+		{
+			TriOffset += TriIncrement;
+		}
+		else
+		{
+			TriOffset -= TriIncrement;
+		}
+
+		if (abs(TriOffset) >= TriMaxOffset)
+		{
+			Direction = !Direction;
+		}
+
 		// Clear Window
 		glClearColor(0.f, 0.f, 1.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw Call to Triangle (Se dira asi? GPT?)
 		glUseProgram(Shader); // En caso de tener mas de un shader se podria usar un switch statement.
+
+			glUniform1f(UniformXMove, TriOffset);
 		
 			glBindVertexArray(VAO);
 
