@@ -1,9 +1,122 @@
 #include <iostream>
+#include <string>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 const GLint WIDTH = 800, HEIGHT = 600;
+
+GLuint VAO, VBO, Shader;
+
+// Vertex Shader creation
+static const char* VShader = "									\n\
+#version 330													\n\
+																\n\
+layout (location = 0) in vec3 pos;								\n\
+																\n\
+void main()														\n\
+{																\n\
+	gl_Position = vec4( 0.4f * pos.x, 0.4f * pos.y, pos.z, 1.0f);\n\
+}";
+
+// Fragment Shader creation
+
+static const char* FShader = "									\n\
+#version 330													\n\
+																\n\
+out vec4 colour;												\n\
+																\n\
+void main()														\n\
+{																\n\
+	colour = vec4(0.0 , 1.0 , 0.0 , 0.3);						\n\
+}";
+
+void CreateTriangle()
+{
+	GLfloat Vertices[] = {
+		-1.f, -1.f, 0.f,
+		1.f, -1.f, 0.f,
+		0.f, 1.f, 0.f
+	};
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+		glGenBuffers(1, &VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices) /* sizeof GLfloat *9 = mas seguro en casos mas grandes, por el numero de vertices */,
+			Vertices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void AddShader(GLuint TheProgram, const char* ShaderCode, GLenum ShaderType)
+{
+	GLuint TheShader = glCreateShader(ShaderType);
+
+	const GLchar* TheCode[1];
+	TheCode[0] = ShaderCode;
+
+	GLint CodeLenght[1];
+	CodeLenght[0] = strlen(ShaderCode);
+
+	glShaderSource(TheShader, 1, TheCode, CodeLenght);
+	glCompileShader(TheShader);
+
+	GLint result = 0;
+	GLchar eLog[1024]{};
+
+	glGetShaderiv(TheShader, GL_COMPILE_STATUS, &result);
+
+	if (!result)
+	{
+		glGetShaderInfoLog(TheShader, sizeof(eLog), NULL, eLog);
+		printf("Error compiling the '%d' shader: '%s'\n", ShaderType, eLog);
+		return;
+	}
+
+	glAttachShader(TheProgram, TheShader);
+}
+
+void CompileShaders()
+{
+	Shader = glCreateProgram();
+
+	if (!Shader) //Can it receive id 0 ?
+	{
+		printf("Error creating Shader Program");
+		return;
+	}
+
+	AddShader(Shader, VShader, GL_VERTEX_SHADER);
+	AddShader(Shader, FShader, GL_FRAGMENT_SHADER);
+
+	GLint result = 0;
+	GLchar eLog[1024]{};
+
+	glLinkProgram(Shader);
+	glGetProgramiv(Shader, GL_LINK_STATUS, &result);
+
+	if (!result)
+	{
+		glGetProgramInfoLog(Shader, sizeof(eLog), NULL, eLog);
+		printf("Error linking program: '%s'\n", eLog);
+		return;
+	}
+
+	glValidateProgram(Shader);
+	glGetProgramiv(Shader, GL_VALIDATE_STATUS, &result);
+
+	if (!result)
+	{
+		glGetProgramInfoLog(Shader, sizeof(eLog), NULL, eLog);
+		printf("Error validating program: '%s'\n", eLog);
+		return;
+	}
+}
 
 int main()
 {
@@ -56,6 +169,11 @@ int main()
 	// Setup viewport size
 	glViewport(0, 0, BufferWidth, BufferHeight);
 
+	// Create Triangle
+
+	CreateTriangle();
+	CompileShaders();
+
 	// Loop until window closed - click close "x"?
 	while (!glfwWindowShouldClose(MainWindow))
 	{
@@ -63,8 +181,19 @@ int main()
 		glfwPollEvents();
 
 		// Clear Window
-		glClearColor(1.f, 0.f, 0.f, 1.f);
+		glClearColor(0.f, 0.f, 1.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Draw Call to Triangle (Se dira asi? GPT?)
+		glUseProgram(Shader); // En caso de tener mas de un shader se podria usar un switch statement.
+		
+			glBindVertexArray(VAO);
+
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+
+			glBindVertexArray(0);
+
+		glUseProgram(0);
 
 		// Draw on the unseen buffer and swap it to be seen. (I think at least, review - Ask GPT?).
 		glfwSwapBuffers(MainWindow);
