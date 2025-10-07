@@ -22,6 +22,11 @@ float TriIncrement = 0.005f;
 
 float CurrentAngle = 0.0f;
 
+bool SizeDirection = true;
+float CurrentSize = 0.4f;
+float MaxSize = 0.8f;
+float MinSize = 0.2f;
+
 // Vertex Shader creation
 static const char* VShader = "												\n\
 #version 330																\n\
@@ -32,7 +37,7 @@ uniform mat4 Model;															\n\
 																			\n\
 void main()																	\n\
 {																			\n\
-	gl_Position = Model * vec4(0.4 * pos.x, 0.4 * pos.y, pos.z, 1.0);		\n\
+	gl_Position = Model * vec4(pos, 1.0);									\n\
 }";
 
 // Fragment Shader creation
@@ -219,6 +224,20 @@ int main()
 			CurrentAngle -= 360;
 		}
 
+		if (SizeDirection)
+		{
+			CurrentSize += 0.001f;
+		}
+		else
+		{
+			CurrentSize -= 0.001f;
+		}
+
+		if (CurrentSize >= MaxSize || CurrentSize <= MinSize)
+		{
+			SizeDirection = !SizeDirection;
+		}
+
 		// Clear Window
 		glClearColor(0.f, 0.f, 1.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -228,15 +247,15 @@ int main()
 
 			// Actualizado para la ultima GLM <Antes glm::mat4 model> - Obligatorio inicializar.
 			// Identity Matrix
-			glm::mat4 model(1.0f);
+			glm::mat4 Model(1.0f);
 
 			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
-			model = glm::translate(model, glm::vec3(TriOffset, 0.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(CurrentAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			
+			Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, 0.0f));
+			Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+			Model = glm::scale(Model, glm::vec3(CurrentSize, CurrentSize, 1.0f));
 
 			//glUniform1f(UniformModel, TriOffset);
-			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(model)); //value_ptr get pointer to model.
+			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
 		
 			glBindVertexArray(VAO);
 
