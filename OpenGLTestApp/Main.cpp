@@ -11,6 +11,7 @@
 #include <GLM/gtc/type_ptr.hpp>
 
 const GLint WIDTH = 800, HEIGHT = 600;
+const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
 GLuint VAO, VBO, Shader, UniformModel;
 
@@ -18,6 +19,8 @@ bool Direction = true;
 float TriOffset = 0.0f;
 float TriMaxOffset = 0.7f;
 float TriIncrement = 0.005f;
+
+float CurrentAngle = 0.0f;
 
 // Vertex Shader creation
 static const char* VShader = "												\n\
@@ -210,6 +213,12 @@ int main()
 			Direction = !Direction;
 		}
 
+		CurrentAngle += 0.1f;
+		if (CurrentAngle >= 360)
+		{
+			CurrentAngle -= 360;
+		}
+
 		// Clear Window
 		glClearColor(0.f, 0.f, 1.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -221,7 +230,10 @@ int main()
 			// Identity Matrix
 			glm::mat4 model(1.0f);
 
+			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
 			model = glm::translate(model, glm::vec3(TriOffset, 0.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(CurrentAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+			
 
 			//glUniform1f(UniformModel, TriOffset);
 			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(model)); //value_ptr get pointer to model.
