@@ -3,41 +3,45 @@
 #include <cmath>
 
 #include <GL/glew.h>
+
 #include <GLFW/glfw3.h>
-#include <GLM/mat4x4.hpp>
+
+#include <GLM/glm.hpp>
+#include <GLM/gtc/matrix_transform.hpp>
+#include <GLM/gtc/type_ptr.hpp>
 
 const GLint WIDTH = 800, HEIGHT = 600;
 
-GLuint VAO, VBO, Shader, UniformXMove;
+GLuint VAO, VBO, Shader, UniformModel;
 
 bool Direction = true;
 float TriOffset = 0.0f;
 float TriMaxOffset = 0.7f;
-float TriIncrement = 0.0005f;
+float TriIncrement = 0.005f;
 
 // Vertex Shader creation
-static const char* VShader = "										\n\
-#version 330														\n\
-																	\n\
-layout (location = 0) in vec3 pos;									\n\
-																	\n\
-uniform float XMove;												\n\
-																	\n\
-void main()															\n\
-{																	\n\
-	gl_Position = vec4( 0.4f * pos.x + XMove, 0.4f * pos.y, pos.z, 1.0f);	\n\
+static const char* VShader = "												\n\
+#version 330																\n\
+																			\n\
+layout (location = 0) in vec3 pos;											\n\
+																			\n\
+uniform mat4 Model;															\n\
+																			\n\
+void main()																	\n\
+{																			\n\
+	gl_Position = Model * vec4(0.4 * pos.x, 0.4 * pos.y, pos.z, 1.0);		\n\
 }";
 
 // Fragment Shader creation
 
-static const char* FShader = "										\n\
-#version 330														\n\
-																	\n\
-out vec4 colour;													\n\
-																	\n\
-void main()															\n\
-{																	\n\
-	colour = vec4(0.0 , 1.0 , 0.0 , 0.3);							\n\
+static const char* FShader = "												\n\
+#version 330																\n\
+																			\n\
+out vec4 colour;															\n\
+																			\n\
+void main()																	\n\
+{																			\n\
+	colour = vec4(0.0 , 1.0 , 0.0 , 0.3);									\n\
 }";
 
 void CreateTriangle()
@@ -126,7 +130,7 @@ void CompileShaders()
 		return;
 	}
 
-	UniformXMove = glGetUniformLocation(Shader, "XMove");
+	UniformModel = glGetUniformLocation(Shader, "Model");
 }
 
 int main()
@@ -213,7 +217,14 @@ int main()
 		// Draw Call to Triangle (Se dira asi? GPT?)
 		glUseProgram(Shader); // En caso de tener mas de un shader se podria usar un switch statement.
 
-			glUniform1f(UniformXMove, TriOffset);
+			// Actualizado para la ultima GLM <Antes glm::mat4 model> - Obligatorio inicializar.
+			// Identity Matrix
+			glm::mat4 model(1.0f);
+
+			model = glm::translate(model, glm::vec3(TriOffset, 0.0f, 0.0f));
+
+			//glUniform1f(UniformModel, TriOffset);
+			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(model)); //value_ptr get pointer to model.
 		
 			glBindVertexArray(VAO);
 
