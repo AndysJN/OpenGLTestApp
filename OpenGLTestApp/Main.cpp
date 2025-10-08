@@ -13,7 +13,7 @@
 const GLint WIDTH = 800, HEIGHT = 600;
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
-GLuint VAO, VBO, IBO /*Index buffer Object - Index Draw*/, Shader, UniformModel;
+GLuint VAO, VBO, IBO /*Index buffer Object - Index Draw*/, Shader, UniformModel, UniformProjection;
 
 bool Direction = true;
 float TriOffset = 0.0f;
@@ -36,10 +36,11 @@ layout (location = 0) in vec3 pos;											\n\
 out vec4 VertexColour;														\n\
 																			\n\
 uniform mat4 Model;															\n\
+uniform mat4 Projection;													\n\
 																			\n\
 void main()																	\n\
 {																			\n\
-	gl_Position = Model * vec4(pos, 1.0);									\n\
+	gl_Position = Projection * Model * vec4(pos, 1.0);						\n\
 	VertexColour = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);						\n\
 }";
 
@@ -160,6 +161,7 @@ void CompileShaders()
 	}
 
 	UniformModel = glGetUniformLocation(Shader, "Model");
+	UniformProjection = glGetUniformLocation(Shader, "Projection");
 }
 
 int main()
@@ -221,6 +223,8 @@ int main()
 	CreateTriangle();
 	CompileShaders();
 
+	glm::mat4 Projection = glm::perspective(45.0f, (GLfloat)BufferWidth / (GLfloat)BufferHeight, 0.1f, 100.0f);
+
 	// Loop until window closed - click close "x"?
 	while (!glfwWindowShouldClose(MainWindow))
 	{
@@ -274,12 +278,14 @@ int main()
 			glm::mat4 Model(1.0f);
 
 			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
-			//Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, 0.0f));
+			Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, -2.5f));
 			Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 			//glUniform1f(UniformModel, TriOffset);
+
 			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
+			glUniformMatrix4fv(UniformProjection, 1, GL_FALSE, glm::value_ptr(Projection));
 		
 			glBindVertexArray(VAO);
 
