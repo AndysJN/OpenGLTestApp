@@ -11,12 +11,14 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
+#include "GLWindow.h"
 #include "Mesh.h"
 #include "Shader.h"
 
 const GLint WIDTH = 800, HEIGHT = 600;
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
+GLWindow MainWindow;
 std::vector<Mesh*> MeshList;
 std::vector<Shader> ShaderList;
 
@@ -73,57 +75,8 @@ void CreateShaders()
 
 int main()
 {
-	//Initialise GLFW
-	if (!glfwInit())
-	{
-		printf("GLFW Initialisation failed!");
-		glfwTerminate();
-		return 1;
-	}
-
-	// Setup GLFW window properties
-	// OpenGL Version -- 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
-	// Core profile = No Backwards compatibility
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// Allow forward compatibility
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	GLFWwindow* MainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Test Window", NULL, NULL);
-	
-	if (!MainWindow)
-	{
-		printf("GLFW window creation failed!");
-		glfwTerminate();
-		return 1;
-	}
-
-	// Get Buffer Size Information (Related to viewport and portion used)
-	int BufferWidth, BufferHeight;
-	glfwGetFramebufferSize(MainWindow, &BufferWidth, &BufferHeight);
-
-	// Set context for GLEW to use
-	glfwMakeContextCurrent(MainWindow);
-
-	// Allow modern extension features
-	glewExperimental = GL_TRUE;
-
-	if (glewInit() != GLEW_OK)
-	{
-		printf("Glew Initialisation failed!");
-		glfwDestroyWindow(MainWindow);
-		glfwTerminate();
-		return 1;
-	}
-
-	// Enable depth test - Which triangles are drawn in top of others
-	glEnable(GL_DEPTH_TEST);
-
-	// Setup viewport size
-	glViewport(0, 0, BufferWidth, BufferHeight);
+	MainWindow = GLWindow(800, 600);
+	MainWindow.Initialise();
 
 	// Create Objects
 
@@ -131,10 +84,10 @@ int main()
 	CreateShaders();
 
 	GLuint UniformProjection = 0, UniformModel = 0;
-	glm::mat4 Projection = glm::perspective(45.0f, (GLfloat)BufferWidth / (GLfloat)BufferHeight, 0.1f, 100.0f);
+	glm::mat4 Projection = glm::perspective(45.0f, MainWindow.GetBufferWidth() / MainWindow.GetBufferHeight(), 0.1f, 100.0f);
 
 	// Loop until window closed - click close "x"?
-	while (!glfwWindowShouldClose(MainWindow))
+	while (!MainWindow.GetShouldClose())
 	{
 		// Get + Hanlde user input events
 		glfwPollEvents();
@@ -211,7 +164,7 @@ int main()
 		glUseProgram(0); //Remplazar con una static function ?
 
 		// Draw on the unseen buffer and swap it to be seen. (I think at least, review - Ask GPT?).
-		glfwSwapBuffers(MainWindow);
+		MainWindow.SwapBuffers();
 	}
 
 	return 0;
