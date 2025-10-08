@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <vector>
 
 #include <GL/glew.h>
 
@@ -10,10 +11,14 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
+#include "Mesh.h"
+
 const GLint WIDTH = 800, HEIGHT = 600;
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
-GLuint VAO, VBO, IBO /*Index buffer Object - Index Draw*/, Shader, UniformModel, UniformProjection;
+std::vector<Mesh*> MeshList;
+
+GLuint Shader, UniformModel, UniformProjection;
 
 bool Direction = true;
 float TriOffset = 0.0f;
@@ -74,26 +79,13 @@ void CreateTriangle()
 		0.f, 1.f, 0.f //Top [3]
 	};
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	Mesh* Obj1 = new Mesh;
+	Obj1->CreateMesh(Vertices, Indices, 12, 12); //Numeros magicos por ahora.
+	MeshList.push_back(Obj1);
 
-		glGenBuffers(1, &IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
-
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices) /* sizeof GLfloat *9 = mas seguro en casos mas grandes, por el numero de vertices */,
-			Vertices, GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //Unbind this AFTER the VAO Unbind (Porque no queremos que esta operacion se registre en el VAO). - Revisar igual.
+	Mesh* Obj2 = new Mesh;
+	Obj1->CreateMesh(Vertices, Indices, 12, 12);
+	MeshList.push_back(Obj2);
 }
 
 void AddShader(GLuint TheProgram, const char* ShaderCode, GLenum ShaderType)
@@ -278,24 +270,25 @@ int main()
 			glm::mat4 Model(1.0f);
 
 			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
-			Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, -2.5f));
-			Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+			Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, -2.5f));
+			//Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
-
-			//glUniform1f(UniformModel, TriOffset);
-
+			
 			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
 			glUniformMatrix4fv(UniformProjection, 1, GL_FALSE, glm::value_ptr(Projection));
-		
-			glBindVertexArray(VAO);
 
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+			MeshList[0]->RenderMesh();
 
-				glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+			Model = glm::mat4(1.0f);
 
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //Desbindeo esto antes o despues del VAO ?
+			Model = glm::translate(Model, glm::vec3(-TriOffset, 1.0f, -2.5f));
+			//Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 			
-			glBindVertexArray(0);
+			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
+		
+			MeshList[0]->RenderMesh();
+
 
 		glUseProgram(0);
 
