@@ -12,13 +12,13 @@
 #include <GLM/gtc/type_ptr.hpp>
 
 #include "Mesh.h"
+#include "Shader.h"
 
 const GLint WIDTH = 800, HEIGHT = 600;
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
 std::vector<Mesh*> MeshList;
-
-GLuint Shader, UniformModel, UniformProjection;
+std::vector<Shader> ShaderList;
 
 bool Direction = true;
 float TriOffset = 0.0f;
@@ -63,7 +63,7 @@ void main()																	\n\
 	colour = VertexColour;													\n\
 }";
 
-void CreateTriangle()
+void CreateObjects()
 {
 	unsigned int Indices[] = {
 		0, 3, 1, //1 side
@@ -88,72 +88,11 @@ void CreateTriangle()
 	MeshList.push_back(Obj2);
 }
 
-void AddShader(GLuint TheProgram, const char* ShaderCode, GLenum ShaderType)
+void CreateShaders()
 {
-	GLuint TheShader = glCreateShader(ShaderType);
-
-	const GLchar* TheCode[1];
-	TheCode[0] = ShaderCode;
-
-	GLint CodeLenght[1];
-	CodeLenght[0] = strlen(ShaderCode);
-
-	glShaderSource(TheShader, 1, TheCode, CodeLenght);
-	glCompileShader(TheShader);
-
-	GLint result = 0;
-	GLchar eLog[1024]{};
-
-	glGetShaderiv(TheShader, GL_COMPILE_STATUS, &result);
-
-	if (!result)
-	{
-		glGetShaderInfoLog(TheShader, sizeof(eLog), NULL, eLog);
-		printf("Error compiling the '%d' shader: '%s'\n", ShaderType, eLog);
-		return;
-	}
-
-	glAttachShader(TheProgram, TheShader);
-}
-
-void CompileShaders()
-{
-	Shader = glCreateProgram();
-
-	if (!Shader) //Can it receive id 0 ?
-	{
-		printf("Error creating Shader Program");
-		return;
-	}
-
-	AddShader(Shader, VShader, GL_VERTEX_SHADER);
-	AddShader(Shader, FShader, GL_FRAGMENT_SHADER);
-
-	GLint result = 0;
-	GLchar eLog[1024]{};
-
-	glLinkProgram(Shader);
-	glGetProgramiv(Shader, GL_LINK_STATUS, &result);
-
-	if (!result)
-	{
-		glGetProgramInfoLog(Shader, sizeof(eLog), NULL, eLog);
-		printf("Error linking program: '%s'\n", eLog);
-		return;
-	}
-
-	glValidateProgram(Shader);
-	glGetProgramiv(Shader, GL_VALIDATE_STATUS, &result);
-
-	if (!result)
-	{
-		glGetProgramInfoLog(Shader, sizeof(eLog), NULL, eLog);
-		printf("Error validating program: '%s'\n", eLog);
-		return;
-	}
-
-	UniformModel = glGetUniformLocation(Shader, "Model");
-	UniformProjection = glGetUniformLocation(Shader, "Projection");
+	Shader* Shader1 = new Shader;
+	Shader1->CreateFromString(VShader, FShader);
+	ShaderList.push_back(*Shader1); //Usar el puntero directamente y hacer un vector de punteros y no de objetos?
 }
 
 int main()
@@ -210,11 +149,12 @@ int main()
 	// Setup viewport size
 	glViewport(0, 0, BufferWidth, BufferHeight);
 
-	// Create Triangle
+	// Create Objects
 
-	CreateTriangle();
-	CompileShaders();
+	CreateObjects();
+	CreateShaders();
 
+	GLuint UniformProjection = 0, UniformModel = 0;
 	glm::mat4 Projection = glm::perspective(45.0f, (GLfloat)BufferWidth / (GLfloat)BufferHeight, 0.1f, 100.0f);
 
 	// Loop until window closed - click close "x"?
@@ -262,8 +202,10 @@ int main()
 		glClearColor(0.f, 0.f, 0.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //bitwise to combine both bits.
 
-		// Draw Call to Triangle (Se dira asi? GPT?)
-		glUseProgram(Shader); // En caso de tener mas de un shader se podria usar un switch statement.
+		// Draw Call to Object (Se dira asi? GPT?)
+		ShaderList[0].UseShader();
+		UniformModel = ShaderList[0].GetModelLocation();
+		UniformProjection = ShaderList[0].GetProjectionLocation();
 
 			// Actualizado para la ultima GLM <Antes glm::mat4 model> - Obligatorio inicializar.
 			// Identity Matrix
@@ -290,7 +232,7 @@ int main()
 			MeshList[0]->RenderMesh();
 
 
-		glUseProgram(0);
+		glUseProgram(0); //Remplazar con una static function ?
 
 		// Draw on the unseen buffer and swap it to be seen. (I think at least, review - Ask GPT?).
 		glfwSwapBuffers(MainWindow);
