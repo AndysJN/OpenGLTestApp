@@ -13,7 +13,7 @@
 const GLint WIDTH = 800, HEIGHT = 600;
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
-GLuint VAO, VBO, Shader, UniformModel;
+GLuint VAO, VBO, IBO /*Index buffer Object - Index Draw*/, Shader, UniformModel;
 
 bool Direction = true;
 float TriOffset = 0.0f;
@@ -59,14 +59,26 @@ void main()																	\n\
 
 void CreateTriangle()
 {
+	unsigned int Indices[] = {
+		0, 3, 1, //1 side
+		1, 3, 2, //2 side
+		2, 3, 0, //front face
+		0, 1, 2  //base
+	};
+
 	GLfloat Vertices[] = {
-		-1.f, -1.f, 0.f,
-		1.f, -1.f, 0.f,
-		0.f, 1.f, 0.f
+		-1.f, -1.f, 0.f, //Bottom Left [0]
+		0.0f, -1.0f, 1.f, //Background - Depth [1]
+		1.f, -1.f, 0.f, //Bottom Right [2]
+		0.f, 1.f, 0.f //Top [3]
 	};
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
+
+		glGenBuffers(1, &IBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
 		glGenBuffers(1, &VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -77,6 +89,10 @@ void CreateTriangle()
 		glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //Unbind this AFTER the VAO Unbind (Porque no queremos que esta operacion se registre en el VAO). - Revisar igual.
 }
 
 void AddShader(GLuint TheProgram, const char* ShaderCode, GLenum ShaderType)
@@ -194,6 +210,9 @@ int main()
 		return 1;
 	}
 
+	// Enable depth test - Which triangles are drawn in top of others
+	glEnable(GL_DEPTH_TEST);
+
 	// Setup viewport size
 	glViewport(0, 0, BufferWidth, BufferHeight);
 
@@ -245,7 +264,7 @@ int main()
 
 		// Clear Window
 		glClearColor(0.f, 0.f, 0.f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //bitwise to combine both bits.
 
 		// Draw Call to Triangle (Se dira asi? GPT?)
 		glUseProgram(Shader); // En caso de tener mas de un shader se podria usar un switch statement.
@@ -256,7 +275,7 @@ int main()
 
 			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
 			//Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, 0.0f));
-			//Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+			Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 			//glUniform1f(UniformModel, TriOffset);
@@ -264,8 +283,12 @@ int main()
 		
 			glBindVertexArray(VAO);
 
-				glDrawArrays(GL_TRIANGLES, 0, 3);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
+				glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //Desbindeo esto antes o despues del VAO ?
+			
 			glBindVertexArray(0);
 
 		glUseProgram(0);
