@@ -33,11 +33,14 @@ static const char* VShader = "												\n\
 																			\n\
 layout (location = 0) in vec3 pos;											\n\
 																			\n\
+out vec4 VertexColour;														\n\
+																			\n\
 uniform mat4 Model;															\n\
 																			\n\
 void main()																	\n\
 {																			\n\
 	gl_Position = Model * vec4(pos, 1.0);									\n\
+	VertexColour = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);						\n\
 }";
 
 // Fragment Shader creation
@@ -45,11 +48,13 @@ void main()																	\n\
 static const char* FShader = "												\n\
 #version 330																\n\
 																			\n\
+in vec4 VertexColour;														\n\
+																			\n\
 out vec4 colour;															\n\
 																			\n\
 void main()																	\n\
 {																			\n\
-	colour = vec4(0.0 , 1.0 , 0.0 , 0.3);									\n\
+	colour = VertexColour;													\n\
 }";
 
 void CreateTriangle()
@@ -239,7 +244,7 @@ int main()
 		}
 
 		// Clear Window
-		glClearColor(0.f, 0.f, 1.f, 1.f);
+		glClearColor(0.f, 0.f, 0.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw Call to Triangle (Se dira asi? GPT?)
@@ -250,9 +255,9 @@ int main()
 			glm::mat4 Model(1.0f);
 
 			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
-			Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, 0.0f));
-			Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			Model = glm::scale(Model, glm::vec3(CurrentSize, CurrentSize, 1.0f));
+			//Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, 0.0f));
+			//Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 			//glUniform1f(UniformModel, TriOffset);
 			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
