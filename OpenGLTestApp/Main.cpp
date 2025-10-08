@@ -33,35 +33,11 @@ float MaxSize = 0.8f;
 float MinSize = 0.2f;
 
 // Vertex Shader creation
-static const char* VShader = "												\n\
-#version 330																\n\
-																			\n\
-layout (location = 0) in vec3 pos;											\n\
-																			\n\
-out vec4 VertexColour;														\n\
-																			\n\
-uniform mat4 Model;															\n\
-uniform mat4 Projection;													\n\
-																			\n\
-void main()																	\n\
-{																			\n\
-	gl_Position = Projection * Model * vec4(pos, 1.0);						\n\
-	VertexColour = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);						\n\
-}";
+static const char* VShader = "Shaders/Shader.vert";
 
 // Fragment Shader creation
 
-static const char* FShader = "												\n\
-#version 330																\n\
-																			\n\
-in vec4 VertexColour;														\n\
-																			\n\
-out vec4 colour;															\n\
-																			\n\
-void main()																	\n\
-{																			\n\
-	colour = VertexColour;													\n\
-}";
+static const char* FShader = "Shaders/Shader.frag";
 
 void CreateObjects()
 {
@@ -91,7 +67,7 @@ void CreateObjects()
 void CreateShaders()
 {
 	Shader* Shader1 = new Shader;
-	Shader1->CreateFromString(VShader, FShader);
+	Shader1->CreateFromFiles(VShader, FShader);
 	ShaderList.push_back(*Shader1); //Usar el puntero directamente y hacer un vector de punteros y no de objetos?
 }
 
