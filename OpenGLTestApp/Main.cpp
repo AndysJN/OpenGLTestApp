@@ -15,29 +15,16 @@
 #include "Mesh.h"
 #include "Shader.h"
 
-const GLint WIDTH = 800, HEIGHT = 600;
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
 GLWindow MainWindow;
 std::vector<Mesh*> MeshList;
 std::vector<Shader> ShaderList;
 
-bool Direction = true;
-float TriOffset = 0.0f;
-float TriMaxOffset = 0.7f;
-float TriIncrement = 0.005f;
-
-float CurrentAngle = 0.0f;
-
-bool SizeDirection = true;
-float CurrentSize = 0.4f;
-float MaxSize = 0.8f;
-float MinSize = 0.2f;
-
-// Vertex Shader creation
+// Vertex Shader File Location
 static const char* VShader = "Shaders/Shader.vert";
 
-// Fragment Shader creation
+// Fragment Shader File Location
 
 static const char* FShader = "Shaders/Shader.frag";
 
@@ -92,41 +79,6 @@ int main()
 		// Get + Hanlde user input events
 		glfwPollEvents();
 
-		// Cambiar direccion?
-		if (Direction)
-		{
-			TriOffset += TriIncrement;
-		}
-		else
-		{
-			TriOffset -= TriIncrement;
-		}
-
-		if (abs(TriOffset) >= TriMaxOffset)
-		{
-			Direction = !Direction;
-		}
-
-		CurrentAngle += 0.1f;
-		if (CurrentAngle >= 360)
-		{
-			CurrentAngle -= 360;
-		}
-
-		if (SizeDirection)
-		{
-			CurrentSize += 0.001f;
-		}
-		else
-		{
-			CurrentSize -= 0.001f;
-		}
-
-		if (CurrentSize >= MaxSize || CurrentSize <= MinSize)
-		{
-			SizeDirection = !SizeDirection;
-		}
-
 		// Clear Window
 		glClearColor(0.f, 0.f, 0.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //bitwise to combine both bits.
@@ -141,7 +93,7 @@ int main()
 			glm::mat4 Model(1.0f);
 
 			// El orden de las transformaciones sobre el modelo es MUY IMPORTANTE.
-			Model = glm::translate(Model, glm::vec3(TriOffset, 0.0f, -2.5f));
+			Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, -2.5f));
 			//Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 			
@@ -152,7 +104,7 @@ int main()
 
 			Model = glm::mat4(1.0f);
 
-			Model = glm::translate(Model, glm::vec3(-TriOffset, 1.0f, -2.5f));
+			Model = glm::translate(Model, glm::vec3(0.0f, 1.0f, -2.5f));
 			//Model = glm::rotate(Model, glm::radians(CurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 			
