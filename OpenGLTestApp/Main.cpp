@@ -14,12 +14,14 @@
 #include "GLWindow.h"
 #include "Mesh.h"
 #include "Shader.h"
+#include "Camera.h"
 
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
 GLWindow MainWindow;
 std::vector<Mesh*> MeshList;
 std::vector<Shader> ShaderList;
+MyCamera Camera;
 
 // Vertex Shader File Location
 static const char* VShader = "Shaders/Shader.vert";
@@ -64,13 +66,15 @@ int main()
 {
 	MainWindow = GLWindow(800, 600);
 	MainWindow.Initialise();
+	Camera = MyCamera();
+
 
 	// Create Objects
 
 	CreateObjects();
 	CreateShaders();
 
-	GLuint UniformProjection = 0, UniformModel = 0;
+	GLuint UniformProjection = 0, UniformModel = 0, UniformView = 0;
 	glm::mat4 Projection = glm::perspective(45.0f, MainWindow.GetBufferWidth() / MainWindow.GetBufferHeight(), 0.1f, 100.0f);
 
 	// Loop until window closed - click close "x"?
@@ -78,6 +82,8 @@ int main()
 	{
 		// Get + Hanlde user input events
 		glfwPollEvents();
+
+		Camera.KeyControl(MainWindow.GetKeys());
 
 		// Clear Window
 		glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -87,6 +93,7 @@ int main()
 		ShaderList[0].UseShader();
 		UniformModel = ShaderList[0].GetModelLocation();
 		UniformProjection = ShaderList[0].GetProjectionLocation();
+		UniformView = ShaderList[0].GetViewLocation();
 
 			// Actualizado para la ultima GLM <Antes glm::mat4 model> - Obligatorio inicializar.
 			// Identity Matrix
@@ -98,7 +105,8 @@ int main()
 			Model = glm::scale(Model, glm::vec3(0.4f, 0.4f, 1.0f));
 			
 			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
-			glUniformMatrix4fv(UniformProjection, 1, GL_FALSE, glm::value_ptr(Projection));
+			glUniformMatrix4fv(UniformProjection, 1, GL_FALSE, glm::value_ptr(Projection)); //Potencialmente podemos poner una funcion en la camara para el zoom.
+			glUniformMatrix4fv(UniformView, 1, GL_FALSE, glm::value_ptr(Camera.CalculateViewMatrix()));
 
 			MeshList[0]->RenderMesh();
 
