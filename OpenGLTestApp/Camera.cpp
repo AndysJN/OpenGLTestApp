@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-MyCamera::MyCamera() : MyCamera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 1.0f)
+MyCamera::MyCamera() : MyCamera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f)
 {
 }
 
@@ -30,6 +30,27 @@ void MyCamera::KeyControl(const bool* Keys, GLfloat DeltaTime)
 	{
 		Position += Right * Velocity;
 	}
+}
+
+void MyCamera::MouseControl(GLfloat XChange, GLfloat YChange)
+{
+	XChange *= TurnSpeed;
+	YChange *= TurnSpeed;
+
+	Yaw += XChange;
+	Pitch += YChange;
+
+	if (Pitch > 89.0f)
+	{
+		Pitch = 89.0f;
+	}
+
+	if (Pitch < -89.0f)
+	{
+		Pitch = -89.0f;
+	}
+
+	Update();
 }
 
 glm::mat4 MyCamera::CalculateViewMatrix()

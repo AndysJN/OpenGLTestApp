@@ -92,6 +92,7 @@ int main()
 		glfwPollEvents();
 
 		Camera.KeyControl(MainWindow.GetKeys(), DeltaTime);
+		Camera.MouseControl(MainWindow.GetXChange(), MainWindow.GetYChange());
 
 		// Clear Window
 		glClearColor(0.f, 0.f, 0.f, 1.f);
