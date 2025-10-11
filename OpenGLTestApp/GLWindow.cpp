@@ -2,10 +2,7 @@
 
 GLWindow::GLWindow() : GLWindow (800, 600)
 {
-	for (size_t i = 0; i < 1024; ++i)
-	{
-		Keys[i] = false;
-	}
+
 }
 
 GLWindow::GLWindow(GLint WindowWidth, GLint WindowHeight) : Width(WindowWidth), Height(WindowHeight)
@@ -14,6 +11,9 @@ GLWindow::GLWindow(GLint WindowWidth, GLint WindowHeight) : Width(WindowWidth), 
 	{
 		Keys[i] = false;
 	}
+
+	XChange = 0.0f;
+	YChange = 0.0f;
 }
 
 int GLWindow::Initialise()
