@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -15,6 +17,7 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "Texture.h"
 
 const float ToRadias = 3.14159265f / 180.0f; // La funcion de rotacion usa radianes y no grados. (0 - 2PI) [Convertira el numero a Radianes] <Lo remplace con la funcion de GLM>
 
@@ -22,6 +25,9 @@ GLWindow MainWindow;
 std::vector<Mesh*> MeshList;
 std::vector<Shader> ShaderList;
 MyCamera Camera;
+
+Texture BrickTexture;
+Texture DirtTexture;
 
 GLfloat DeltaTime {0.0f};
 GLfloat LastTime {0.0f};
@@ -43,18 +49,19 @@ void CreateObjects()
 	};
 
 	GLfloat Vertices[] = {
-		-1.f, -1.f, 0.f, //Bottom Left [0]
-		0.0f, -1.0f, 1.f, //Background - Depth [1]
-		1.f, -1.f, 0.f, //Bottom Right [2]
-		0.f, 1.f, 0.f //Top [3]
+		// x	y	z													u		v
+		-1.f, -1.f, 0.f, /*Bottom Left [0]*/ /* UVs */				0.0f,	0.0f,
+		0.0f, -1.0f, 1.f, /*Background - Depth [1]*/ /* UVs */		0.5f,	0.0f,
+		1.f, -1.f, 0.f, /*Bottom Right [2]*/ /* UVs */				1.0f,	0.0f,
+		0.f, 1.f, 0.f, /*Top [3]*/ /* UVs */						0.5f,	1.0f
 	};
 
 	Mesh* Obj1 = new Mesh;
-	Obj1->CreateMesh(Vertices, Indices, 12, 12); //Numeros magicos por ahora.
+	Obj1->CreateMesh(Vertices, Indices, 20, 12); //Numeros magicos por ahora.
 	MeshList.push_back(Obj1);
 
 	Mesh* Obj2 = new Mesh;
-	Obj1->CreateMesh(Vertices, Indices, 12, 12);
+	Obj1->CreateMesh(Vertices, Indices, 20, 12);
 	MeshList.push_back(Obj2);
 }
 
@@ -76,6 +83,11 @@ int main()
 
 	CreateObjects();
 	CreateShaders();
+
+	BrickTexture = Texture("Texture/brick.png");
+	BrickTexture.LoadTexture();
+	DirtTexture = Texture("Texture/dirt.png");
+	DirtTexture.LoadTexture();
 
 	GLuint UniformProjection = 0, UniformModel = 0, UniformView = 0;
 	glm::mat4 Projection = glm::perspective(45.0f, MainWindow.GetBufferWidth() / MainWindow.GetBufferHeight(), 0.1f, 100.0f);
@@ -117,6 +129,8 @@ int main()
 			glUniformMatrix4fv(UniformProjection, 1, GL_FALSE, glm::value_ptr(Projection)); //Potencialmente podemos poner una funcion en la camara para el zoom.
 			glUniformMatrix4fv(UniformView, 1, GL_FALSE, glm::value_ptr(Camera.CalculateViewMatrix()));
 
+			BrickTexture.UseTexture();
+
 			MeshList[0]->RenderMesh();
 
 			Model = glm::mat4(1.0f);
@@ -127,6 +141,8 @@ int main()
 			
 			glUniformMatrix4fv(UniformModel, 1, GL_FALSE, glm::value_ptr(Model)); //value_ptr get pointer to model.
 		
+			DirtTexture.UseTexture();
+
 			MeshList[0]->RenderMesh();
 
 
