@@ -14,7 +14,7 @@ public:
 	MyCamera();
 	MyCamera(glm::vec3 StartPosition, glm::vec3 StartWorldUp, GLfloat StartYaw, GLfloat StartPitch, GLfloat StartMovementSpeed, GLfloat StartTurnSpeed);
 
-	void KeyControl(const bool* Keys);
+	void KeyControl(const bool* Keys, GLfloat DeltaTime);
 
 	glm::mat4 CalculateViewMatrix();
 

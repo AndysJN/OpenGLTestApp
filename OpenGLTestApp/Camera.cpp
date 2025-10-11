@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-MyCamera::MyCamera() : MyCamera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.01f)
+MyCamera::MyCamera() : MyCamera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 1.0f)
 {
 }
 
@@ -10,23 +10,25 @@ MyCamera::MyCamera(glm::vec3 StartPosition, glm::vec3 StartWorldUp, GLfloat Star
 	Update();
 }
 
-void MyCamera::KeyControl(const bool* Keys)
+void MyCamera::KeyControl(const bool* Keys, GLfloat DeltaTime)
 {
+	GLfloat Velocity = MovementSpeed * DeltaTime;
+
 	if(Keys[GLFW_KEY_W])
 	{
-		Position += Front * MovementSpeed;
+		Position += Front * Velocity;
 	}
 	if (Keys[GLFW_KEY_S])
 	{
-		Position -= Front * MovementSpeed;
+		Position -= Front * Velocity;
 	}
 	if (Keys[GLFW_KEY_A])
 	{
-		Position -= Right * MovementSpeed;
+		Position -= Right * Velocity;
 	}
 	if (Keys[GLFW_KEY_D])
 	{
-		Position += Right * MovementSpeed;
+		Position += Right * Velocity;
 	}
 }
 
